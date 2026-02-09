@@ -16,16 +16,16 @@ Kompleksowa wiedza i kompetencje do obsługi:
 
 ## 🚀 Quick Start
 
-Zobacz główny plik [SKILL.md](SKILL.md) dla przeglądu kompetencji.
+Zobacz główny plik [SKILL.md](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/SKILL.md) dla przeglądu kompetencji.
 
 Szczegółowa dokumentacja (pliki referencyjne):
-- [Stan prawny i harmonogram](ksef-legal-status.md)
-- [API Reference](ksef-api-reference.md)
-- [Przykłady FA(3)](ksef-fa3-examples.md)
-- [Przepływy księgowe](ksef-accounting-workflows.md)
-- [Funkcje AI](ksef-ai-features.md)
-- [Security & Compliance](ksef-security-compliance.md)
-- [Troubleshooting](ksef-troubleshooting.md)
+- [Stan prawny i harmonogram](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-legal-status.md)
+- [API Reference](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-api-reference.md)
+- [Przykłady FA(3)](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-fa3-examples.md)
+- [Przepływy księgowe](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-accounting-workflows.md)
+- [Funkcje AI](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-ai-features.md)
+- [Security & Compliance](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-security-compliance.md)
+- [Troubleshooting](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-troubleshooting.md)
 
 ## 📊 Struktura
 
@@ -55,7 +55,7 @@ Wszystkie pliki w root (flat hierarchy dla clawhub.ai):
 **2.1.3** - Agent-compatible links
 
 ### Changelog
-- **v2.1.3** - Added `{baseDir}` syntax for AI agents + kept markdown links for humans
+- **v2.1.3** - Zmiana wszystkich relatywnych linków markdown na absolutne (GitHub) dla kompatybilności z clawhub.ai
 - **v2.1.2** - Fixed all internal links (moved files from docs/ to root)
 - **v2.1.1** - Security improvements (no `os.system`, added SECURITY.md)
 - **v2.1.0** - Progressive disclosure refactor

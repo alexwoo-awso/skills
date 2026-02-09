@@ -298,15 +298,15 @@ graph LR
 - ksef-latarnia: https://github.com/CIRFMF/ksef-latarnia
 
 ### Dokumentacja wewnętrzna (dla ludzi)
-1. [Stan prawny i harmonogram](ksef-legal-status.md)
-2. [API Reference](ksef-api-reference.md)
-3. [Przykłady FA(3)](ksef-fa3-examples.md)
-4. [Przepływy księgowe](ksef-accounting-workflows.md)
-5. [Funkcje AI](ksef-ai-features.md)
-6. [Integracje](ksef-integrations.md)
-7. [Security & Compliance](ksef-security-compliance.md)
-8. [Troubleshooting](ksef-troubleshooting.md)
-9. [Monitoring](ksef-monitoring.md)
+1. [Stan prawny i harmonogram](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-legal-status.md)
+2. [API Reference](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-api-reference.md)
+3. [Przykłady FA(3)](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-fa3-examples.md)
+4. [Przepływy księgowe](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-accounting-workflows.md)
+5. [Funkcje AI](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-ai-features.md)
+6. [Integracje](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-integrations.md)
+7. [Security & Compliance](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-security-compliance.md)
+8. [Troubleshooting](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-troubleshooting.md)
+9. [Monitoring](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-monitoring.md)
 
 ### Dokumentacja wewnętrzna (dla agentów AI)
 1. `{baseDir}/ksef-legal-status.md` - Stan prawny i harmonogram
@@ -322,6 +322,10 @@ graph LR
 ---
 
 ## 🔄 Historia Wersji
+
+**v2.1.3 (9 lutego 2026)**
+- Zmiana wszystkich relatywnych linków markdown na absolutne (GitHub)
+- Poprawka kompatybilności z clawhub.ai
 
 **v2.1 (9 lutego 2026)**
 - Refactor do struktury progressive disclosure (główny plik ~400 linii)
@@ -341,25 +345,25 @@ graph LR
 ## ⚡ Quick Start
 
 ### Dla nowych użytkowników:
-1. Przeczytaj [Stan prawny](ksef-legal-status.md) - sprawdź czy obowiązek dotyczy Ciebie
-2. Zapoznaj się z [API Reference](ksef-api-reference.md) - podstawy integracji
-3. Zobacz [Przykłady FA(3)](ksef-fa3-examples.md) - struktura faktur
+1. Przeczytaj [Stan prawny](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-legal-status.md) - sprawdź czy obowiązek dotyczy Ciebie
+2. Zapoznaj się z [API Reference](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-api-reference.md) - podstawy integracji
+3. Zobacz [Przykłady FA(3)](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-fa3-examples.md) - struktura faktur
 
 ### Dla integratorów:
-1. [API Reference](ksef-api-reference.md) - pełna dokumentacja endpointów
-2. [Integracje](ksef-integrations.md) - przykłady dla ERP/CRM/Bank
-3. [Security & Compliance](ksef-security-compliance.md) - wymagania bezpieczeństwa
+1. [API Reference](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-api-reference.md) - pełna dokumentacja endpointów
+2. [Integracje](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-integrations.md) - przykłady dla ERP/CRM/Bank
+3. [Security & Compliance](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-security-compliance.md) - wymagania bezpieczeństwa
 
 ### Dla księgowych:
-1. [Przepływy księgowe](ksef-accounting-workflows.md) - automatyzacja
-2. [Funkcje AI](ksef-ai-features.md) - klasyfikacja i matching
-3. [Monitoring](ksef-monitoring.md) - KPIs i dashboardy
+1. [Przepływy księgowe](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-accounting-workflows.md) - automatyzacja
+2. [Funkcje AI](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-ai-features.md) - klasyfikacja i matching
+3. [Monitoring](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-monitoring.md) - KPIs i dashboardy
 
 ---
 
 ## 📞 Wsparcie
 
-**Problemy techniczne:** Sprawdź [Troubleshooting](ksef-troubleshooting.md)
+**Problemy techniczne:** Sprawdź [Troubleshooting](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/ksef-troubleshooting.md)
 **Pytania prawne:** Konsultacja z doradcą podatkowym
 **Zgłoszenia:** github.com/CIRFMF
 

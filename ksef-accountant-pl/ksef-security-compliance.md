@@ -655,4 +655,4 @@ Zamiast własnych skryptów backup:
 - Ustawą o rachunkowości
 - Normami ISO 27001 (opcjonalnie)
 
-[← Powrót do głównego SKILL](SKILL.md)
+[← Powrót do głównego SKILL](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/SKILL.md)

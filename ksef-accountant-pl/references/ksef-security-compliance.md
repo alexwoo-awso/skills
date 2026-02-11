@@ -22,12 +22,25 @@ Przed użyciem wzorców w środowisku produkcyjnym:
 
 ---
 
-## Gwarancje platformy vs. skilla
+## Gwarancje platformy vs. skilla — weryfikacja przed instalacją
 
-Ten skill deklaruje `disableModelInvocation: true` w metadanych SKILL.md, ale wymuszanie tej flagi zależy od platformy hostingowej. Przed instalacją:
-- Zweryfikuj, że platforma faktycznie honoruje flagę `disableModelInvocation`
-- Potwierdź, że zmienne środowiskowe są izolowane i nie są logowane/wyświetlane w konwersacji
-- Jeśli platforma nie wymusza tych ustawień, nie udostępniaj skilla z dostępem do produkcyjnych danych uwierzytelniających
+Ten skill deklaruje `disableModelInvocation: true` w metadanych frontmatter SKILL.md. Jednak sam frontmatter to **deklaracja skilla, nie gwarancja platformy**. Wymuszanie tej flagi zależy wyłącznie od platformy hostingowej.
+
+**Znany problem:** Metadane rejestru (registry metadata) wyświetlane przez platformę mogą nie odzwierciedlać wartości z frontmatter. Jeśli platforma pokazuje `disable-model-invocation: not set` (lub pomija tę flagę), ochrona przed autonomicznym wywołaniem **nie jest aktywna** — niezależnie od tego, co deklaruje SKILL.md.
+
+**Obowiązkowa weryfikacja przed instalacją:**
+
+1. **Porównaj frontmatter z metadanymi rejestru** — po dodaniu skilla do platformy, otwórz widok metadanych rejestru. Zweryfikuj, że:
+   - `disable-model-invocation` = `true`
+   - Inne flagi bezpieczeństwa na poziomie platformy (jeśli istnieją) są poprawnie ustawione
+   - Jeśli JAKIEKOLWIEK pole nie zgadza się z frontmatter — traktuj skill jako wyższego ryzyka
+2. **Potwierdź izolację zmiennych środowiskowych** — zmienne (`KSEF_TOKEN`, `KSEF_ENCRYPTION_KEY`, `KSEF_BASE_URL`) nie mogą być logowane, wyświetlane w konwersacji ani dostępne dla innych skilli
+3. **Jeśli platforma NIE wymusza flagi `disableModelInvocation`:**
+   - NIE konfiguruj żadnych zmiennych środowiskowych z danymi uwierzytelniającymi
+   - NIE udostępniaj tokenów, certyfikatów ani kluczy szyfrowania
+   - NIE zezwalaj na autonomiczne użycie skilla
+   - Używaj wyłącznie w trybie ręcznym (jawna akcja użytkownika) i tylko ze środowiskiem DEMO (`https://ksef-demo.mf.gov.pl`)
+4. **Zgłoś rozbieżność** — jeśli metadane rejestru nie pasują do frontmatter, zgłoś to dostawcy platformy jako problem bezpieczeństwa wymagający naprawy
 
 ---
 

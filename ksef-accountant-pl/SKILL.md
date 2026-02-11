@@ -7,13 +7,13 @@ source: https://github.com/alexwoo-awso/skills/tree/main/ksef-accountant-pl
 disableModelInvocation: true
 env:
   KSEF_TOKEN:
-    description: "Token API KSeF do uwierzytelniania sesji. Dostarczany przez uzytkownika — skill nie generuje, nie przechowuje ani nie przesyla tokenow."
+    description: "Token API KSeF do uwierzytelniania sesji. Dostarczany przez uzytkownika — skill nie generuje, nie przechowuje ani nie przesyla tokenow. UWAGA: Konfiguruj TYLKO po zweryfikowaniu, ze platforma wymusza flage disableModelInvocation (patrz sekcja Model bezpieczenstwa)."
     required: false
   KSEF_ENCRYPTION_KEY:
-    description: "Klucz szyfrowania Fernet do bezpiecznego przechowywania tokenow. Uzycie opcjonalne — przyklad wzorca bezpieczenstwa opisanego w dokumentacji referencyjnej."
+    description: "Klucz szyfrowania Fernet do bezpiecznego przechowywania tokenow. Uzycie opcjonalne — przyklad wzorca bezpieczenstwa opisanego w dokumentacji referencyjnej. UWAGA: Konfiguruj TYLKO po zweryfikowaniu, ze platforma wymusza flage disableModelInvocation."
     required: false
   KSEF_BASE_URL:
-    description: "Bazowy URL API KSeF. Domyslnie https://ksef-demo.mf.gov.pl (DEMO). Produkcja: https://ksef.mf.gov.pl — wymaga jawnej zgody uzytkownika."
+    description: "Bazowy URL API KSeF. Domyslnie https://ksef-demo.mf.gov.pl (DEMO). Produkcja: https://ksef.mf.gov.pl — wymaga jawnej zgody uzytkownika. Uzywaj produkcji TYLKO po pelnej weryfikacji bezpieczenstwa platformy."
     required: false
     default: "https://ksef-demo.mf.gov.pl"
 ---
@@ -31,8 +31,17 @@ Ten skill jest **wylacznie instrukcyjny** — sklada sie z plikow Markdown zawie
 - Brak kodu wykonywalnego — wszystkie przyklady (Python, XML, JSON) to ilustracje pogladowe, NIE kod uruchamiany przez skill.
 - Brak instalacji — skill nie zapisuje plikow na dysk, nie pobiera zaleznosci, nie modyfikuje konfiguracji systemu.
 
-**Gwarancje zalezne od platformy (wazne):**
-- Wymuszanie flagi `disableModelInvocation` zalezy od platformy hostingowej. Przed instalacja zweryfikuj, ze platforma faktycznie honoruje te flage.
+**UWAGA — weryfikacja metadanych rejestru przed instalacja:**
+
+Flaga `disableModelInvocation: true` w tym pliku (frontmatter) to jedynie deklaracja skilla. Platforma hostingowa moze nie odczytac lub nie wymusic tej flagi. **Przed instalacja MUSISZ wykonac ponizsze kroki:**
+
+1. **Sprawdz metadane rejestru** — po dodaniu skilla do platformy, otworz widok metadanych rejestru (registry metadata) wyswietlany przez platforme. Zweryfikuj, ze pole `disable-model-invocation` jest ustawione na `true`. Jesli platforma pokazuje `not set`, `false` lub nie wyswietla tego pola — flaga NIE jest wymuszana.
+2. **Jesli metadane rejestru nie pasuja do frontmatter** — traktuj skill jako wyzszego ryzyka: NIE udostepniaj danych uwierzytelniajacych (tokenow, certyfikatow, kluczy), NIE konfiguruj zmiennych srodowiskowych (`KSEF_TOKEN`, `KSEF_ENCRYPTION_KEY`), NIE zezwalaj na autonomiczne uzycie.
+3. **Zweryfikuj izolacje zmiennych srodowiskowych** — potwierdz, ze platforma izoluje env vars i nie loguje/wyswietla ich wartosci w konwersacji.
+4. **Jesli platforma nie wymusza flag** — skontaktuj sie z dostawca platformy w celu wlaczenia obslugi `disableModelInvocation` lub nie instaluj skilla z dostepem do jakichkolwiek danych uwierzytelniajacych.
+
+**Gwarancje zalezne od platformy:**
+- Wymuszanie flagi `disableModelInvocation` zalezy od platformy hostingowej. Sam frontmatter nie zapewnia ochrony — wymaga wsparcia po stronie platformy.
 - Izolacja zmiennych srodowiskowych (env vars) zalezy od platformy. Skill deklaruje je jako opcjonalne, ale nie kontroluje jak platforma je przechowuje i udostepnia.
 - Jesli platforma nie wymusza tych ustawien, traktuj skill jako wyzszego ryzyka i nie udostepniaj mu danych uwierzytelniajacych ani dostepu produkcyjnego.
 
@@ -44,7 +53,17 @@ Ten skill jest **wylacznie instrukcyjny** — sklada sie z plikow Markdown zawie
 - **Wymagane potwierdzenie uzytkownika** - Zawsze wymagaj jawnej zgody uzytkownika przed: blokowaniem platnosci, wysylaniem faktur na produkcyjny KSeF, modyfikacja zapisow ksiegowych lub jakimkolwiek dzialaniem z konsekwencjami finansowymi.
 - **Dane uwierzytelniajace zarzadzane przez uzytkownika** - Tokeny KSeF API, certyfikaty i klucze szyfrowania musza byc dostarczone przez uzytkownika przez zmienne srodowiskowe (zadeklarowane w metadanych: `KSEF_TOKEN`, `KSEF_ENCRYPTION_KEY`, `KSEF_BASE_URL`) lub menedzer sekretow. Skill nigdy nie przechowuje, nie generuje, nie przesyla ani nie prosi o dane uwierzytelniajace niejawnie. **NIGDY nie wklejaj danych uwierzytelniajacych (tokenow, kluczy, certyfikatow) bezposrednio w rozmowie z agentem** — uzyj zmiennych srodowiskowych lub menedzera sekretow platformy. Przyklady uzycia Vault/Fernet w dokumentacji referencyjnej to wzorce architektoniczne do implementacji przez uzytkownika.
 - **Uzyj DEMO do testow** - Produkcja (`https://ksef.mf.gov.pl`) wystawia prawnie wiazace faktury. Uzyj DEMO (`https://ksef-demo.mf.gov.pl`) do developmentu i testow.
-- **Wylaczone autonomiczne wywolanie** - Skill ustawia `disableModelInvocation: true` w metadanych frontmatter. Oznacza to, ze model nie powinien wywolywac tego skilla autonomicznie — wymaga jawnej akcji uzytkownika. Wymuszanie tej flagi zalezy od platformy (patrz sekcja "Model bezpieczenstwa" powyzej).
+- **Wylaczone autonomiczne wywolanie** - Skill ustawia `disableModelInvocation: true` w metadanych frontmatter. Oznacza to, ze model nie powinien wywolywac tego skilla autonomicznie — wymaga jawnej akcji uzytkownika. **UWAGA:** Sam frontmatter to deklaracja — nie gwarancja. Wymuszanie zalezy od platformy. Przed uzyciem zweryfikuj, ze metadane rejestru (registry metadata) wyswietlane przez platforme rowniez pokazuja `disable-model-invocation: true`. Jesli platforma pokazuje `not set` lub `false`, flaga nie jest wymuszana i skill moze byc wywolywany autonomicznie (patrz sekcja "Model bezpieczenstwa" powyzej).
+
+## Checklist przed instalacja
+
+Przed instalacja skilla i konfiguracja zmiennych srodowiskowych wykonaj ponizsze kroki:
+
+- [ ] Zweryfikuj metadane rejestru platformy — pole `disable-model-invocation` musi pokazywac `true`
+- [ ] Potwierdz, ze platforma izoluje zmienne srodowiskowe (nie loguje, nie wyswietla w konwersacji)
+- [ ] Przetestuj skill wylacznie ze srodowiskiem DEMO (`https://ksef-demo.mf.gov.pl`) przed jakimkolwiek uzyciem produkcyjnym
+- [ ] NIE wklejaj tokenow, kluczy ani certyfikatow bezposrednio w rozmowie — uzyj env vars lub menedzera sekretow
+- [ ] Jesli metadane rejestru nie pasuja do frontmatter — NIE konfiguruj danych uwierzytelniajacych i zglos problem dostawcy platformy
 
 ## Glowne kompetencje
 

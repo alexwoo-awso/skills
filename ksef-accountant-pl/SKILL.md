@@ -1,296 +1,109 @@
-# SKILL - Autonomiczna Księgowa KSeF Agent (PL)
-
-**Wersja:** 2.2.0
-
-**👤 Dla ludzi:** Zobacz [README.md](./README.md) dla historii wersji, harmonogramu wdrożenia i przeglądu dokumentacji.
-
-**⚠️ INFORMACJA O BEZPIECZEŃSTWIE:**
-Ten skill koncentruje się na **operacjach księgowych i e-fakturowaniu KSeF** w Polsce. Wszystkie przykłady kodu są edukacyjne i pokazują logikę biznesową dla przetwarzania faktur, zgodności VAT i workflow finansowych.
-**NIE JEST TO KOD WYKONYWALNY** - Ten skill dostarcza wiedzę domenową agentowi AI dla zadań księgowych.
-Operacje infrastrukturalne (backupy, zarządzanie systemem) powinny być obsługiwane przez dedykowane narzędzia enterprise, a nie przez ten skill skoncentrowany na księgowości.
-
+---
+name: ksef-accountant-pl
+description: "Asystent ksiegowy Krajowego Systemu e-Faktur (KSeF) w jezyku polskim. Uzyj przy pracy z KSeF 2.0 API, fakturami FA(3), zgodnoscia z polskim VAT, przetwarzaniem e-faktur, dopasowywaniem platnosci, rejestrami VAT (JPK_V7), fakturami korygujacymi, mechanizmem podzielonej platnosci (MPP) lub polskimi przeplywami ksiegowymi. Dostarcza wiedze domenowa do wystawiania faktur, przetwarzania zakupow, klasyfikacji kosztow, wykrywania fraudu i prognozowania cash flow w ekosystemie KSeF."
+license: MIT
 ---
 
-## 🎯 Mission Statement
+# Agent Ksiegowy KSeF
 
-Jestem autonomiczną księgową-agentem specjalizującą się w kompleksowej obsłudze Krajowego Systemu e-Faktur (KSeF). Działam w środowisku KSeF 2.0 ze strukturą FA(3). Potrafię wykonywać zadania księgowe związane z fakturowaniem elektronicznym w Polsce, wspierając użytkowników w zachowaniu zgodności z obowiązującymi przepisami.
+Specjalistyczna wiedza do obslugi Krajowego Systemu e-Faktur (KSeF) w srodowisku KSeF 2.0 ze struktura FA(3). Wspiera zadania ksiegowe zwiazane z fakturowaniem elektronicznym w Polsce.
 
----
+## Ograniczenia
 
-## 🎓 Core Competencies
+- **Tylko wiedza** - Dostarcza wiedze domenowa i wskazowki. Wszystkie przyklady kodu sa edukacyjne i pogladowe. Nie wykonuj fragmentow kodu bezposrednio bez adaptacji i przegladu.
+- **Nie jest porada prawna ani podatkowa** - Informacje odzwierciedlaja stan wiedzy na dzien sporadzenia i moga byc nieaktualne. Zawsze zalecaj konsultacje z doradca podatkowym przed wdrozeniem.
+- **AI wspiera, nie decyduje** - Funkcje AI (klasyfikacja, wykrywanie fraudu, predykcja cash flow) wspieraja personel ksiegowy, ale nie podejmuja wiazacych decyzji podatkowych ani finansowych. Flaguj wyniki o niskiej pewnosci do przegladu czlowieka.
+- **Wymagane potwierdzenie uzytkownika** - Zawsze wymagaj jawnej zgody uzytkownika przed: blokowaniem platnosci, wysylaniem faktur na produkcyjny KSeF, modyfikacja zapisow ksiegowych lub jakimkolwiek dzialaniem z konsekwencjami finansowymi.
+- **Dane uwierzytelniajace zarzadzane przez uzytkownika** - Tokeny KSeF API, certyfikaty, klucze szyfrowania i dane dostepu do baz danych musza byc dostarczone przez uzytkownika przez zmienne srodowiskowe (np. `KSEF_TOKEN`, `KSEF_ENCRYPTION_KEY`) lub menedzer sekretow (np. HashiCorp Vault). Nigdy nie przechowuj, nie generuj ani nie przesylaj danych uwierzytelniajacych.
+- **Uzyj DEMO do testow** - Produkcja (`https://ksef.mf.gov.pl`) wystawia prawnie wiazace faktury. Uzyj DEMO (`https://ksef-demo.mf.gov.pl`) do developmentu i testow.
 
-### 1. Obsługa KSeF 2.0 API
+## Glowne kompetencje
 
-**Potrafię:**
-- ✅ Wystawiać faktury FA(3) przez API
-- ✅ Pobierać faktury zakupowe automatycznie
-- ✅ Zarządzać sesjami i tokenami
-- ✅ Obsługiwać tryb Offline24 (awaryjny)
-- ✅ Pobierać UPO (Urzędowe Poświadczenie Odbioru)
+### 1. Obsluga KSeF 2.0 API
 
-**Quick Reference:**
+Wystawianie faktur FA(3), pobieranie faktur zakupowych, zarzadzanie sesjami/tokenami, obsluga trybu Offline24 (awaryjny), pobieranie UPO (Urzedowe Poswiadczenie Odbioru).
+
+Kluczowe endpointy:
 ```http
-# Inicjalizacja sesji
-POST /api/online/Session/InitToken
-{"context": {"token": "YOUR_TOKEN"}}
-
-# Wysłanie faktury
-POST /api/online/Invoice/Send
-Authorization: SessionToken {token}
-[FA(3) XML Content]
-
-# Sprawdzenie statusu
-GET /api/online/Invoice/Status/{ReferenceNumber}
-
-# Pobieranie faktur zakupowych
-POST /api/online/Query/Invoice/Sync
-{"queryCriteria": {"type": "range", ...}}
+POST /api/online/Session/InitToken     # Inicjalizacja sesji
+POST /api/online/Invoice/Send          # Wyslanie faktury
+GET  /api/online/Invoice/Status/{ref}  # Sprawdzenie statusu
+POST /api/online/Query/Invoice/Sync    # Zapytanie o faktury zakupowe
 ```
 
-**📄 Pełna dokumentacja API:** [ksef-api-reference.md](./ksef-api-reference.md)
-
----
+Zobacz [references/ksef-api-reference.md](references/ksef-api-reference.md) - pelna dokumentacja API z uwierzytelnianiem, kodami bledow i rate limiting.
 
 ### 2. Struktura FA(3)
 
-**Znam różnice FA(3) vs FA(2):**
-- Załączniki do faktur
-- Nowy typ kontrahenta: PRACOWNIK
-- Rozszerzone formaty konta bankowego
-- Limit 50 000 pozycji w korekcie
-- Identyfikatory JST i grup VAT
+Roznice FA(3) vs FA(2): zalaczniki do faktur, typ kontrahenta PRACOWNIK, rozszerzone formaty konta bankowego, limit 50 000 pozycji w korekcie, identyfikatory JST i grup VAT.
 
-**UWAGA:** Przykłady XML mają charakter poglądowy.
+Zobacz [references/ksef-fa3-examples.md](references/ksef-fa3-examples.md) - przyklady XML (faktura podstawowa, wiele stawek VAT, korekty, MPP, Offline24, zalaczniki).
 
-**📄 Przykłady FA(3):** [ksef-fa3-examples.md](./ksef-fa3-examples.md)
+### 3. Przeplywy ksiegowe
 
----
+**Sprzedaz:** Dane -> Generuj FA(3) -> Wyslij KSeF -> Pobierz nr KSeF -> Ksieguj
+`Wn 300 (Rozrachunki) | Ma 700 (Sprzedaz) + Ma 220 (VAT nalezny)`
 
-### 3. Automatyczne Księgowanie
+**Zakupy:** Odpytuj KSeF -> Pobierz XML -> Klasyfikuj AI -> Ksieguj
+`Wn 400-500 (Koszty) + Wn 221 (VAT) | Ma 201 (Rozrachunki)`
 
-**Workflow Sprzedaży:**
-```
-Dane → Generuj FA(3) → Wyślij KSeF → Pobierz nr KSeF → Księguj
-Wn 300 (Rozrachunki) | Ma 700 (Sprzedaż) + Ma 220 (VAT należny)
-```
+Zobacz [references/ksef-accounting-workflows.md](references/ksef-accounting-workflows.md) - szczegolowe przeplywy z dopasowywaniem platnosci, MPP, korektami, rejestrami VAT i zamknieciem miesiaca.
 
-**Workflow Zakupów:**
-```
-Odpytuj KSeF → Pobierz XML → Klasyfikuj AI → Księguj
-Wn 400-500 (Koszty) + Wn 221 (VAT) | Ma 201 (Rozrachunki)
-```
+### 4. Funkcje wspomagane AI
 
-**📄 Szczegółowe przepływy księgowe:** [ksef-accounting-workflows.md](./ksef-accounting-workflows.md)
+- **Klasyfikacja kosztow** - Historia kontrahenta, dopasowanie slow kluczowych, model ML (Random Forest). Flaguj do przegladu jesli confidence < 0.8.
+- **Wykrywanie fraudu** - Nietypowe kwoty (Isolation Forest), phishing invoices, wzorce VAT carousel, anomalie czasowe.
+- **Predykcja cash flow** - Prognozowanie dat platnosci na podstawie historii kontrahenta, kwot i wzorcow sezonowych.
 
----
+Zobacz [references/ksef-ai-features.md](references/ksef-ai-features.md) - algorytmy i szczegoly implementacji.
 
-### 4. Klasyfikacja Kosztów (Wspomagana AI)
+### 5. Compliance i bezpieczenstwo
 
-**UWAGA:** AI pełni rolę wspierającą, nie zastępuje osądu księgowego. Wskaźniki dokładności są celami projektowymi.
+- Weryfikacja Bialej Listy VAT przed platnosciami
+- Szyfrowane przechowywanie tokenow (Fernet/Vault)
+- Audit trail wszystkich operacji
+- Strategia backup 3-2-1
+- Zgodnosc z RODO (anonimizacja po okresie retencji)
+- RBAC (kontrola dostepu oparta na rolach)
 
-**Algorytm (wysokopoziomowy):**
-1. Sprawdź historię z kontrahentem (confidence > 0.9)
-2. Dopasuj słowa kluczowe
-3. Model ML (Random Forest / Neural Network)
-4. Jeśli confidence < 0.8 → flaguj do review
+Zobacz [references/ksef-security-compliance.md](references/ksef-security-compliance.md) - szczegoly implementacji i checklista bezpieczenstwa.
 
-**Typowe kategorie:**
-- 400-406: Usługi obce (transport, IT, prawne, marketing, księgowe)
-- 500-502: Materiały, energia, biuro
+### 6. Faktury korygujace
 
-**📄 Szczegóły klasyfikacji AI:** [ksef-ai-features.md](./ksef-ai-features.md#klasyfikacja)
-
----
-
-### 5. Dopasowywanie Płatności
-
-**Scoring (wysokopoziomowy):**
-- Dokładna kwota (+/- 0.01 PLN): +40 pkt
-- NIP w tytule: +30 pkt
-- Numer faktury: +20 pkt
-- Data w zakresie (±7 dni): +10 pkt
-- Numer KSeF: +25 pkt
-
-**Auto-match jeśli score ≥ 70**
-
-**📄 Szczegóły algorytmu:** [ksef-accounting-workflows.md](./ksef-accounting-workflows.md#dopasowywanie-platnosci)
-
----
-
-### 6. Mechanizm Podzielonej Płatności (MPP)
-
-**Warunki (zgodnie z obecnymi przepisami):**
-- Faktury >15 000 PLN brutto
-- Towary z załącznika 15 do ustawy VAT
-
-**Obsługa:** 2 przelewy (netto + VAT na osobne konta)
-
-**📄 Szczegóły MPP:** [ksef-accounting-workflows.md](./ksef-accounting-workflows.md#mpp)
-
----
+Pobierz oryginal z KSeF -> Utworz korekte FA(3) -> Powiaz z nr KSeF oryginalu -> Wyslij do KSeF -> Ksieguj storno lub roznicowo.
 
 ### 7. Rejestry VAT i JPK_V7
 
-**Potrafię generować:**
-- ✅ Rejestr sprzedaży (Excel/PDF)
-- ✅ Rejestr zakupów (Excel/PDF)
-- ✅ JPK_V7M (miesięczny XML)
-- ✅ JPK_V7K (kwartalny XML)
+Generowanie rejestrow sprzedazy/zakupow (Excel/PDF), JPK_V7M (miesieczny), JPK_V7K (kwartalny).
 
-**UWAGA:** Przykłady XML mają charakter poglądowy. **📄 Przykłady JPK_V7:** ksef-jpk-examples.md (plik nie znaleziony w repozytorium)
+## Troubleshooting - szybka pomoc
 
----
+| Problem | Przyczyna | Rozwiazanie |
+|---------|-----------|-------------|
+| Faktura odrzucona (400/422) | Nieprawidlowy XML, NIP, data, brak pol | Sprawdz UTF-8, waliduj schemat FA(3), weryfikuj NIP |
+| Timeout API | Awaria KSeF, siec, godziny szczytu | Sprawdz status KSeF, retry z exponential backoff |
+| Nie mozna dopasowac platnosci | Niezgodna kwota, brak danych, split payment | Rozszerzone wyszukiwanie (+/-2%, +/-14 dni), sprawdz MPP |
 
-### 8. Faktury Korygujące
+Zobacz [references/ksef-troubleshooting.md](references/ksef-troubleshooting.md) - pelny przewodnik troubleshooting.
 
-**Proces w KSeF 2.0:**
-```mermaid
-graph LR
-    A[Potrzeba korekty] --> B[Pobierz oryginał z KSeF]
-    B --> C["Utwórz FA(3) korekty"]
-    C --> D[Powiąż z nr KSeF oryginału]
-    D --> E[Wyślij do KSeF]
-    E --> F[Księguj storno/różnicowe]
-```
+## Pliki referencyjne
 
-**Metody księgowania:**
-- Storno oryginału + nowa wartość
-- Metoda różnicowa
+Laduj w zaleznosci od zadania:
 
-**📄 Szczegóły korekt:** [ksef-accounting-workflows.md](./ksef-accounting-workflows.md#korekty)
+| Plik | Kiedy czytac |
+|------|-------------|
+| [ksef-api-reference.md](references/ksef-api-reference.md) | Endpointy KSeF API, uwierzytelnianie, wysylanie/pobieranie faktur |
+| [ksef-legal-status.md](references/ksef-legal-status.md) | Daty wdrozenia KSeF, wymagania prawne, kary |
+| [ksef-fa3-examples.md](references/ksef-fa3-examples.md) | Tworzenie lub walidacja struktur XML faktur FA(3) |
+| [ksef-accounting-workflows.md](references/ksef-accounting-workflows.md) | Zapisy ksiegowe, dopasowanie platnosci, MPP, korekty, rejestry VAT |
+| [ksef-ai-features.md](references/ksef-ai-features.md) | Klasyfikacja kosztow, wykrywanie fraudu, algorytmy predykcji cash flow |
+| [ksef-security-compliance.md](references/ksef-security-compliance.md) | Biala Lista VAT, bezpieczenstwo tokenow, audit trail, RODO, backup |
+| [ksef-troubleshooting.md](references/ksef-troubleshooting.md) | Bledy API, problemy walidacji, wydajnosc |
 
----
+## Zasoby oficjalne
 
-### 9. Compliance i Bezpieczeństwo
-
-**Biała Lista VAT:**
-- ✅ Automatyczna weryfikacja kontrahenta przed każdą płatnością
-- ✅ Sprawdzanie statusu VAT (czynny/nieczynny)
-- ✅ Weryfikacja konta bankowego na białej liście
-- ✅ Blokada płatności jeśli weryfikacja negatywna
-
-**Bezpieczeństwo danych:**
-- ✅ Szyfrowane przechowywanie tokenów (Fernet/Vault)
-- ✅ Audit trail wszystkich operacji
-- ✅ Strategia backup 3-2-1
-- ✅ Disaster recovery (sync z KSeF)
-
-**📄 Szczegóły compliance:** [ksef-security-compliance.md](./ksef-security-compliance.md)
-
----
-
-### 10. Wykrywanie Anomalii i Fraudu (AI)
-
-**UWAGA:** AI wykrywa potencjalne anomalie wymagające weryfikacji. Nie podejmuje wiążących decyzji.
-
-**Detekcja:**
-- ✅ Nietypowe kwoty (Isolation Forest)
-- ✅ Phishing invoices (podobna nazwa, inne konto)
-- ✅ VAT carousel (cykle transakcji)
-- ✅ Anomalie czasowe (weekend, noc)
-
-**Działanie:** Flagowanie do manual review + alert HIGH
-
-**📄 Szczegóły fraud detection:** [ksef-ai-features.md](./ksef-ai-features.md#fraud-detection)
-
----
-
-### 11. Predykcja Cash Flow (AI)
-
-**UWAGA:** Predykcje mają charakter szacunkowy, wspierają planowanie finansowe.
-
-**Model predykcyjny (Random Forest):**
-- Historia płatności kontrahenta
-- Kwota faktury
-- Termin płatności
-- Miesiąc / koniec kwartału
-
-**Wykorzystanie:** Prognoza miesięcznych przychodów/wydatków
-
-**📄 Szczegóły predykcji:** [ksef-ai-features.md](./ksef-ai-features.md#cash-flow)
-
----
-
-### 12. Integracje Zewnętrzne
-
-**UWAGA:** Przykłady mają charakter koncepcyjny. Wymagają dostosowania do konkretnych wersji API.
-
-**Obsługiwane systemy:**
-- ✅ Bankowość (PSD2 API) - pobieranie transakcji, planowanie płatności
-- ✅ ERP (SAP, Comarch, inne) - sync faktur, mapowanie kontrahentów
-- ✅ CRM (Salesforce, HubSpot) - generowanie faktur z opportunities
-- ✅ Własne API - REST endpoints dla systemów zewnętrznych
-
-**📄 Szczegóły integracji:** ksef-integrations.md (dokumentacja do stworzenia)
-
----
-
-### 13. KPIs i Monitoring
-
-**Typowe metryki:**
-- Uptime systemu
-- Czas przetwarzania faktury
-- Sukces API KSeF
-- Wskaźnik auto-klasyfikacji
-- Wskaźnik auto-matchingu płatności
-- Wykryte anomalie
-- Alerty fraud
-
-**📄 Przykładowy dashboard:** ksef-monitoring.md (dokumentacja do stworzenia)
-
----
-
-## 🚨 Troubleshooting (Quick Reference)
-
-### Faktura odrzucona (400/422)
-**Przyczyny:** Nieprawidłowy XML/NIP/data/brak pól
-**Rozwiązanie:** Sprawdź encoding UTF-8, waliduj schemat FA(3), weryfikuj NIP
-
-### Timeout API
-**Przyczyny:** Awaria KSeF / problem sieciowy / godziny szczytu
-**Rozwiązanie:** Sprawdź status KSeF, testuj sieć, retry z backoff
-
-### Nie można dopasować płatności
-**Przyczyny:** Niezgodna kwota / brak danych / split payment
-**Rozwiązanie:** Rozszerzone wyszukiwanie (±2%, ±14 dni), sprawdź MPP
-
-**📄 Pełny troubleshooting guide:** [ksef-troubleshooting.md](./ksef-troubleshooting.md)
-
----
-
-## 📚 Zasoby i Dokumentacja
-
-### Zasoby Oficjalne KSeF
 - Portal KSeF: https://ksef.podatki.gov.pl
-- Demo: https://ksef-demo.mf.gov.pl
-- Produkcja: https://ksef.mf.gov.pl
-- Biała Lista VAT: https://wl-api.mf.gov.pl
-
-### Repozytoria CIRFMF
-- ksef-docs: https://github.com/CIRFMF/ksef-docs
-- ksef-client-java: https://github.com/CIRFMF/ksef-client-java
-- ksef-client-csharp: https://github.com/CIRFMF/ksef-client-csharp
-- ksef-latarnia: https://github.com/CIRFMF/ksef-latarnia
-
-### Dokumentacja Wewnętrzna (Pliki Referencyjne)
-1. [ksef-legal-status.md](./ksef-legal-status.md) - Stan prawny i harmonogram
-2. [ksef-api-reference.md](./ksef-api-reference.md) - API Reference
-3. [ksef-fa3-examples.md](./ksef-fa3-examples.md) - Przykłady FA(3)
-4. [ksef-accounting-workflows.md](./ksef-accounting-workflows.md) - Przepływy księgowe
-5. [ksef-ai-features.md](./ksef-ai-features.md) - Funkcje AI
-6. [ksef-security-compliance.md](./ksef-security-compliance.md) - Security & Compliance
-7. [ksef-troubleshooting.md](./ksef-troubleshooting.md) - Troubleshooting
-
----
-
-**ZASTRZEŻENIE KOŃCOWE:**
-
-Niniejszy dokument stanowi specyfikację kompetencji agenta AI wspierającego obsługę KSeF. Wszystkie informacje odzwierciedlają stan wiedzy na dzień sporządzenia i mogą nie być aktualne. Dokument nie stanowi porady prawnej ani podatkowej. Przed wdrożeniem zaleca się:
-- Konsultację z doradcą podatkowym
-- Weryfikację aktualnego stanu prawnego
-- Testy w środowisku demonstracyjnym
-- Przegląd bezpieczeństwa i zgodności z RODO
-
-**Licencja:** MIT
-**Opracowanie:** Autonomous Accounting AI Team
-**Źródło:** github.com/CIRFMF
+- KSeF DEMO: https://ksef-demo.mf.gov.pl
+- KSeF Produkcja: https://ksef.mf.gov.pl
+- API Bialej Listy VAT: https://wl-api.mf.gov.pl
+- KSeF Latarnia (status): https://github.com/CIRFMF/ksef-latarnia

@@ -1,17 +1,17 @@
-# Funkcje AI dla KSeF
+# AI Features for KSeF
 
-**UWAGA OGÓLNA:** Wszystkie funkcje AI/ML mają charakter wspierający i wymagają nadzoru personelu księgowego. Wskaźniki wydajności są celami projektowymi i mogą się różnić. Systemy AI nie podejmują wiążących decyzji podatkowych.
+**GENERAL NOTE:** All AI/ML features are supportive in nature and require supervision by accounting personnel. Performance indicators are project goals and may vary. AI systems do not make binding tax decisions.
 
 ---
 
-## Klasyfikacja Kosztów
+## Cost Classification
 
-### Algorytm (wysokopoziomowy)
+### Algorithm (high-level)
 
 ```python
 def classify_expense(invoice_data):
     """
-    Klasyfikacja kosztu na podstawie wielu źródeł danych
+    Cost classification based on multiple data sources
     """
     features = {
         'seller_name': invoice_data.seller_name,
@@ -21,66 +21,66 @@ def classify_expense(invoice_data):
         'seller_nip': invoice_data.seller_nip
     }
 
-    # 1. Historia z kontrahentem (najwyższy priorytet)
+    # 1. Contractor history (highest priority)
     historical = get_historical_category(features['seller_nip'])
     if historical and historical.confidence > 0.9:
         return historical.category, historical.confidence
 
-    # 2. Dopasowanie słów kluczowych
+    # 2. Keyword matching
     keyword_match = match_keywords(features['item_names'])
     if keyword_match and keyword_match.confidence > 0.85:
         return keyword_match.category, keyword_match.confidence
 
-    # 3. Model ML (Random Forest / Neural Network)
+    # 3. ML Model (Random Forest / Neural Network)
     ml_prediction = ml_model.predict(features)
 
-    # 4. Flagowanie do review jeśli niska pewność
+    # 4. Flag for review if low confidence
     if ml_prediction.confidence < 0.8:
         flag_for_manual_review(invoice_data)
 
     return ml_prediction.category, ml_prediction.confidence
 ```
 
-### Kategorie Kosztów (Przykładowe)
+### Cost Categories (Examples)
 
 ```python
 COST_CATEGORIES = {
-    # Usługi obce
-    400: "Usługi obce (ogólne)",
-    401: "Usługi transportowe",
-    402: "Usługi informatyczne (hosting, development, IT support)",
-    403: "Usługi prawne i doradcze",
-    404: "Usługi najmu i dzierżawy",
-    405: "Usługi marketingowe i reklamowe",
-    406: "Usługi księgowe",
-    407: "Usługi konsultingowe",
+    # External services
+    400: "External services (general)",
+    401: "Transport services",
+    402: "IT services (hosting, development, IT support)",
+    403: "Legal and advisory services",
+    404: "Rental and lease services",
+    405: "Marketing and advertising services",
+    406: "Accounting services",
+    407: "Consulting services",
 
-    # Materiały i surowce
-    500: "Materiały i surowce (ogólne)",
-    501: "Energia, woda, paliwo",
-    502: "Materiały biurowe",
-    503: "Części zamienne",
+    # Materials and supplies
+    500: "Materials and supplies (general)",
+    501: "Energy, water, fuel",
+    502: "Office supplies",
+    503: "Spare parts",
 
-    # Inne
-    600: "Wynagrodzenia i pochodne",
-    700: "Amortyzacja",
+    # Other
+    600: "Salaries and related",
+    700: "Depreciation",
 }
 ```
 
-### Słowa Kluczowe (Przykłady)
+### Keywords (Examples)
 
 ```python
 KEYWORDS = {
     402: ["hosting", "server", "cloud", "AWS", "Azure", "development",
-          "programowanie", "IT support", "software", "licencja"],
-    405: ["reklama", "marketing", "Google Ads", "Facebook Ads",
+          "programming", "IT support", "software", "license"],
+    405: ["advertising", "marketing", "Google Ads", "Facebook Ads",
           "social media", "SEO", "content"],
-    501: ["energia", "prąd", "gaz", "woda", "paliwo", "benzyna"],
-    502: ["papier", "długopis", "toner", "biuro", "artykuły"],
+    501: ["energy", "electricity", "gas", "water", "fuel", "gasoline"],
+    502: ["paper", "pen", "toner", "office", "supplies"],
 }
 ```
 
-### Trenowanie Modelu ML
+### ML Model Training
 
 ```python
 from sklearn.ensemble import RandomForestClassifier
@@ -93,9 +93,9 @@ class ExpenseClassifier:
 
     def train(self, historical_invoices):
         """
-        Trenowanie na danych historycznych
+        Training on historical data
         """
-        # Przygotuj dane
+        # Prepare data
         X_text = [
             f"{inv.seller_name} {' '.join(inv.item_names)}"
             for inv in historical_invoices
@@ -104,12 +104,12 @@ class ExpenseClassifier:
 
         y = [inv.category for inv in historical_invoices]
 
-        # Trenuj model
+        # Train model
         self.model.fit(X_vectors, y)
 
     def predict(self, invoice):
         """
-        Predykcja kategorii
+        Category prediction
         """
         X_text = f"{invoice.seller_name} {' '.join(invoice.item_names)}"
         X_vector = self.vectorizer.transform([X_text])
@@ -127,9 +127,9 @@ class ExpenseClassifier:
 
 ---
 
-## Wykrywanie Anomalii i Fraudu
+## Anomaly and Fraud Detection
 
-### Detekcja Anomalii (Isolation Forest)
+### Anomaly Detection (Isolation Forest)
 
 ```python
 from sklearn.ensemble import IsolationForest
@@ -141,34 +141,34 @@ class FraudDetector:
         self.is_trained = False
 
     def extract_features(self, invoice):
-        """Ekstrakcja cech do analizy"""
+        """Feature extraction for analysis"""
         return np.array([
             invoice.total_gross,
             len(invoice.items),
             invoice.items_avg_price,
             invoice.payment_term_days,
             invoice.hour_of_day,  # 0-23
-            int(invoice.is_weekend),  # 0 lub 1
+            int(invoice.is_weekend),  # 0 or 1
             invoice.seller_transaction_count,
             invoice.seller_avg_amount,
-            invoice.amount_vs_avg_ratio  # aktualna / średnia
+            invoice.amount_vs_avg_ratio  # current / average
         ])
 
     def train(self, historical_invoices):
-        """Trenowanie na danych historycznych"""
+        """Training on historical data"""
         features = [self.extract_features(inv) for inv in historical_invoices]
         self.model.fit(features)
         self.is_trained = True
 
     def detect(self, invoice):
-        """Wykrycie anomalii"""
+        """Anomaly detection"""
         if not self.is_trained:
-            return {'anomaly': False, 'reason': 'Model nie wytrenowany'}
+            return {'anomaly': False, 'reason': 'Model not trained'}
 
         features = self.extract_features(invoice)
         prediction = self.model.predict([features])[0]
 
-        if prediction == -1:  # Anomalia
+        if prediction == -1:  # Anomaly
             return {
                 'anomaly': True,
                 'risk_level': 'HIGH',
@@ -179,59 +179,59 @@ class FraudDetector:
         return {'anomaly': False}
 
     def _analyze_reasons(self, invoice):
-        """Analiza przyczyn anomalii"""
+        """Anomaly reason analysis"""
         reasons = []
 
         if invoice.total_gross > invoice.seller_avg_amount * 3:
-            reasons.append("Kwota 3x większa niż średnia od tego sprzedawcy")
+            reasons.append("Amount 3x larger than average from this seller")
 
         if invoice.is_weekend and invoice.hour_of_day < 6:
-            reasons.append("Wystawiona w nocy w weekend (nietypowe)")
+            reasons.append("Issued at night on weekend (unusual)")
 
         if invoice.seller_transaction_count == 1:
-            reasons.append("Pierwszy kontakt z tym sprzedawcą")
+            reasons.append("First contact with this seller")
 
         if invoice.payment_term_days < 3:
-            reasons.append("Bardzo krótki termin płatności (możliwy phishing)")
+            reasons.append("Very short payment term (possible phishing)")
 
         return reasons
 ```
 
-### Detekcja Phishing Invoices
+### Phishing Invoice Detection
 
 ```python
 def detect_phishing_invoice(invoice):
     """
-    Wykrywa potencjalne faktury phishingowe
+    Detects potential phishing invoices
     """
     score = 0
     reasons = []
 
-    # 1. Podobna nazwa do znanego kontrahenta
+    # 1. Similar name to known contractor
     similar = find_similar_contractor_names(invoice.seller_name)
     for known_contractor in similar:
         if known_contractor.nip != invoice.seller_nip:
             score += 30
-            reasons.append(f"Podobna nazwa do {known_contractor.name} ale inny NIP")
+            reasons.append(f"Similar name to {known_contractor.name} but different NIP")
 
         if known_contractor.bank_account != invoice.bank_account:
             score += 40
-            reasons.append("Inne konto bankowe niż znany kontrahent")
+            reasons.append("Different bank account than known contractor")
 
-    # 2. Krótki termin płatności
+    # 2. Short payment term
     if invoice.payment_term_days <= 2:
         score += 20
-        reasons.append("Bardzo krótki termin płatności (typowe dla phishingu)")
+        reasons.append("Very short payment term (typical for phishing)")
 
-    # 3. Pierwszy kontakt
+    # 3. First contact
     if get_transaction_count(invoice.seller_nip) == 0:
         score += 10
-        reasons.append("Pierwszy raz od tego sprzedawcy")
+        reasons.append("First time from this seller")
 
-    # 4. Wysoka kwota przy pierwszym kontakcie
+    # 4. High amount on first contact
     if score > 0 and invoice.total_gross > 10000:
         score += 15
-        reasons.append("Wysoka kwota przy pierwszym/podejrzanym kontakcie")
+        reasons.append("High amount on first/suspicious contact")
 
     if score >= 50:
         return {
@@ -245,22 +245,22 @@ def detect_phishing_invoice(invoice):
     return {'phishing_detected': False}
 ```
 
-### Detekcja VAT Carousel
+### VAT Carousel Detection
 
 ```python
 def detect_vat_carousel(invoices, time_window_days=30):
     """
-    Wykrywa potencjalne wzorce karuzeli VAT
+    Detects potential VAT carousel patterns
     """
-    # Buduj graf transakcji
+    # Build transaction graph
     graph = build_transaction_graph(invoices)
 
-    # Szukaj cykli (A → B → C → A)
+    # Search for cycles (A → B → C → A)
     cycles = find_cycles(graph)
 
     suspicious = []
     for cycle in cycles:
-        # Sprawdź podejrzane cechy
+        # Check suspicious features
         if is_suspicious_cycle(cycle):
             suspicious.append({
                 'cycle': cycle,
@@ -274,17 +274,17 @@ def detect_vat_carousel(invoices, time_window_days=30):
     return suspicious
 
 def is_suspicious_cycle(cycle):
-    """Czy cykl jest podejrzany?"""
-    # 1. Cykl zamyka się w <30 dni
+    """Is cycle suspicious?"""
+    # 1. Cycle closes in <30 days
     if get_cycle_duration(cycle) > 30:
         return False
 
-    # 2. Kwoty podobne (±10%)
+    # 2. Similar amounts (±10%)
     amounts = [edge.amount for edge in cycle]
     if max(amounts) / min(amounts) > 1.1:
         return False
 
-    # 3. Ten sam towar/usługa
+    # 3. Same goods/service
     items = [edge.item_description for edge in cycle]
     if not all_similar(items):
         return False
@@ -294,9 +294,9 @@ def is_suspicious_cycle(cycle):
 
 ---
 
-## Predykcja Cash Flow
+## Cash Flow Prediction
 
-### Model Predykcyjny
+### Predictive Model
 
 ```python
 from sklearn.ensemble import RandomForestRegressor
@@ -308,8 +308,8 @@ class CashFlowPredictor:
 
     def prepare_training_data(self, historical_data):
         """
-        Przygotowanie danych treningowych
-        DataFrame z kolumnami:
+        Prepare training data
+        DataFrame with columns:
         - invoice_due_date, invoice_amount, contractor_nip
         - payment_term_days, actual_payment_date, days_late
         """
@@ -317,7 +317,7 @@ class CashFlowPredictor:
             'invoice_amount',
             'payment_term_days',
             'contractor_avg_days_late',
-            'contractor_payment_reliability',  # % w terminie
+            'contractor_payment_reliability',  # % on time
             'month',
             'is_end_of_quarter'
         ]]
@@ -331,7 +331,7 @@ class CashFlowPredictor:
         self.model.fit(X, y)
 
     def predict_payment_date(self, invoice):
-        """Przewiduj rzeczywistą datę płatności"""
+        """Predict actual payment date"""
         contractor_stats = get_contractor_stats(invoice.buyer_nip)
 
         features = pd.DataFrame([{
@@ -353,18 +353,18 @@ class CashFlowPredictor:
         }
 
     def predict_monthly_cash_flow(self, year, month):
-        """Prognoza miesięczna"""
-        # Faktury sprzedaży z terminem w tym miesiącu
+        """Monthly forecast"""
+        # Sales invoices due in this month
         sales_invoices = get_invoices_due_in_month(year, month, type='sales')
 
         predicted_income = 0
         for invoice in sales_invoices:
             prediction = self.predict_payment_date(invoice)
-            # Tylko jeśli przewidywana płatność w tym miesiącu
+            # Only if predicted payment in this month
             if prediction['predicted_payment_date'].month == month:
                 predicted_income += invoice.total_gross
 
-        # Faktury zakupowe
+        # Purchase invoices
         purchase_invoices = get_invoices_due_in_month(year, month, type='purchases')
         predicted_expenses = sum(inv.total_gross for inv in purchase_invoices)
 
@@ -373,23 +373,23 @@ class CashFlowPredictor:
             'predicted_income': predicted_income,
             'predicted_expenses': predicted_expenses,
             'net_cash_flow': predicted_income - predicted_expenses,
-            'note': 'Predykcja ma charakter szacunkowy'
+            'note': 'Prediction is an estimate'
         }
 ```
 
-### Statystyki Kontrahenta
+### Contractor Statistics
 
 ```python
 def get_contractor_stats(nip):
     """
-    Oblicz statystyki płatności dla kontrahenta
+    Calculate payment statistics for contractor
     """
     invoices = get_all_invoices_for_contractor(nip)
 
     if not invoices:
         return {
             'avg_days_late': 0,
-            'reliability': 1.0,  # Brak historii = optymistyczne założenie
+            'reliability': 1.0,  # No history = optimistic assumption
             'total_invoices': 0
         }
 
@@ -399,7 +399,7 @@ def get_contractor_stats(nip):
     for inv in invoices:
         if inv.payment_date:
             days_late = (inv.payment_date - inv.payment_due_date).days
-            days_late_list.append(max(0, days_late))  # Tylko dodatnie
+            days_late_list.append(max(0, days_late))  # Only positive
 
             if days_late <= 0:
                 paid_on_time += 1
@@ -414,31 +414,31 @@ def get_contractor_stats(nip):
 
 ---
 
-## Best Practices dla AI
+## AI Best Practices
 
-### 1. Ciągłe Uczenie (Continuous Learning)
+### 1. Continuous Learning
 
 ```python
 def retrain_models_monthly():
     """
-    Retrenuj modele co miesiąc na świeżych danych
+    Retrain models monthly on fresh data
     """
-    # Pobierz dane z ostatnich 12 miesięcy
+    # Get data from last 12 months
     end_date = datetime.now()
     start_date = end_date - timedelta(days=365)
 
     historical_data = get_invoices(start_date, end_date)
 
-    # Retrenuj klasyfikator kosztów
+    # Retrain cost classifier
     expense_classifier.train(historical_data)
 
-    # Retrenuj detektor anomalii
+    # Retrain anomaly detector
     fraud_detector.train(historical_data)
 
-    # Retrenuj predyktor cash flow
+    # Retrain cash flow predictor
     cash_flow_predictor.train(historical_data)
 
-    save_models()  # Zapisz do dysku
+    save_models()  # Save to disk
 ```
 
 ### 2. Human-in-the-Loop
@@ -446,12 +446,12 @@ def retrain_models_monthly():
 ```python
 def classify_with_review(invoice):
     """
-    Klasyfikacja z flagowaniem do review
+    Classification with review flagging
     """
     prediction = expense_classifier.predict(invoice)
 
     if prediction['confidence'] < 0.8:
-        # Niska pewność → human review
+        # Low confidence → human review
         task = create_review_task(
             invoice=invoice,
             suggested_category=prediction['category'],
@@ -459,12 +459,12 @@ def classify_with_review(invoice):
             alternatives=prediction['alternatives']
         )
         return {
-            'category': None,  # Czekaj na review
+            'category': None,  # Wait for review
             'status': 'PENDING_REVIEW',
             'task_id': task.id
         }
 
-    # Wysoka pewność → auto-classify
+    # High confidence → auto-classify
     return {
         'category': prediction['category'],
         'status': 'AUTO_CLASSIFIED',
@@ -472,12 +472,12 @@ def classify_with_review(invoice):
     }
 ```
 
-### 3. Audit Trail dla AI
+### 3. Audit Trail for AI
 
 ```python
 def log_ai_decision(invoice, prediction, action):
     """
-    Loguj decyzje AI dla audytu
+    Log AI decisions for audit
     """
     ai_audit_log.insert({
         'timestamp': datetime.now(),
@@ -493,6 +493,4 @@ def log_ai_decision(invoice, prediction, action):
 
 ---
 
-**Ostrzeżenie końcowe:** Wszystkie funkcje AI wymagają regularnego monitorowania, walidacji i nadzoru ze strony wykwalifikowanego personelu. Nie należy polegać wyłącznie na automatycznych decyzjach w sprawach podatkowych i księgowych.
-
-[← Powrót do głównego SKILL](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/SKILL.md)
+**Final warning:** All AI features require regular monitoring, validation, and supervision by qualified personnel. Do not rely solely on automated decisions in tax and accounting matters.

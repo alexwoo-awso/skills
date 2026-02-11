@@ -1,113 +1,113 @@
 # Troubleshooting KSeF
 
-Guide to resolving the most common KSeF system issues.
+Przewodnik rozwiązywania najczęstszych problemów z systemem KSeF.
 
 ---
 
-## Authentication Issues
+## Problemy z Autentykacją
 
-### Error 401: Unauthorized
+### Błąd 401: Unauthorized
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "processingCode": 401,
-  "processingDescription": "No authorization"
+  "processingDescription": "Brak autoryzacji"
 }
 ```
 
-**Causes:**
-- Session expired (token valid only ~30 min)
-- Invalid token
-- Token lacks required permissions
+**Przyczyny:**
+- Sesja wygasła (token ważny tylko ~30 min)
+- Nieprawidłowy token
+- Token nie ma wymaganych uprawnień
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 def handle_401_error():
-    # 1. Check token validity
+    # 1. Sprawdź ważność tokena
     if session.is_expired():
-        # Refresh session
+        # Odśwież sesję
         session = ksef_client.init_session(token)
         retry_operation()
 
-    # 2. Check token permissions
-    # Token must have scope: invoice.read, invoice.write
+    # 2. Sprawdź uprawnienia tokena
+    # Token musi mieć scope: invoice.read, invoice.write
 
-    # 3. Generate new token in KSeF portal
+    # 3. Wygeneruj nowy token w portalu KSeF
 ```
 
 ---
 
-### Error 403: Forbidden
+### Błąd 403: Forbidden
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "processingCode": 403,
-  "processingDescription": "No permissions"
+  "processingDescription": "Brak uprawnień"
 }
 ```
 
-**Causes:**
-- Token lacks permissions for this operation
-- NIP in token doesn't match NIP in invoice
+**Przyczyny:**
+- Token nie ma uprawnień do tej operacji
+- NIP w tokenie nie zgadza się z NIP w fakturze
 
-**Solution:**
-1. Check token permissions in KSeF portal
-2. Ensure token is for correct NIP
-3. Check if token has scope for given operation (read/write)
+**Rozwiązanie:**
+1. Sprawdź uprawnienia tokena w portalu KSeF
+2. Upewnij się że token jest dla właściwego NIP
+3. Sprawdź czy token ma scope dla danej operacji (read/write)
 
 ---
 
-## Invoice Validation Issues
+## Problemy z Walidacją Faktur
 
-### Error 100: Invalid XML format
+### Błąd 100: Nieprawidłowy format XML
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "exceptionCode": "100",
-  "exceptionDescription": "Invalid XML format"
+  "exceptionDescription": "Nieprawidłowy format XML"
 }
 ```
 
-**Solution:**
+**Rozwiązanie:**
 ```python
-# 1. Check encoding
+# 1. Sprawdź encoding
 assert xml_content.startswith('<?xml version="1.0" encoding="UTF-8"?>')
 
-# 2. Validate XML parser
+# 2. Waliduj XML parser
 try:
     ET.fromstring(xml_content)
 except ET.ParseError as e:
-    print(f"Parse error: {e}")
-    # Check: unclosed tags, invalid characters
+    print(f"Błąd parsowania: {e}")
+    # Sprawdź: unclosed tags, nieprawidłowe znaki
 
-# 3. Remove BOM (Byte Order Mark)
+# 3. Usuń BOM (Byte Order Mark)
 xml_content = xml_content.lstrip('\ufeff')
 ```
 
 ---
 
-### Error 101: Schema validation error
+### Błąd 101: Błąd walidacji schematu
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "exceptionCode": "101",
-  "exceptionDescription": "XSD schema validation error"
+  "exceptionDescription": "Błąd walidacji schematu XSD"
 }
 ```
 
-**Causes:**
-- Using FA(2) instead of FA(3)
-- Invalid XML structure
-- Missing required fields
-- Invalid namespace
+**Przyczyny:**
+- Używasz FA(2) zamiast FA(3)
+- Nieprawidłowa struktura XML
+- Brakujące wymagane pola
+- Nieprawidłowy namespace
 
-**Solution:**
+**Rozwiązanie:**
 ```python
-# FA(3) checklist:
+# Checklist FA(3):
 checks = {
     'Namespace': 'http://crd.gov.pl/wzor/2023/06/29/12648/',
     'KodFormularza kodSystemowy': 'FA(3)',
@@ -117,38 +117,38 @@ checks = {
 
 for field, expected in checks.items():
     if expected not in xml_content:
-        print(f"ERROR: Missing {field} = {expected}")
+        print(f"BŁĄD: Brak {field} = {expected}")
 ```
 
-**Common errors:**
-- `kodSystemowy="FA(2)"` → Change to `FA(3)`
-- `wersjaSchemy="1-0"` → Change to `1-0E`
-- Old namespace from 2021 → Use namespace from 2023
+**Częste błędy:**
+- `kodSystemowy="FA(2)"` → Zmień na `FA(3)`
+- `wersjaSchemy="1-0"` → Zmień na `1-0E`
+- Stary namespace z 2021 → Użyj namespace z 2023
 
 ---
 
-### Error 102: Invalid NIP
+### Błąd 102: Nieprawidłowy NIP
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "exceptionCode": "102",
-  "exceptionDescription": "Invalid NIP"
+  "exceptionDescription": "Nieprawidłowy NIP"
 }
 ```
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 def validate_nip(nip):
-    # 1. Length
+    # 1. Długość
     if len(nip) != 10:
         return False
 
-    # 2. Digits
+    # 2. Cyfry
     if not nip.isdigit():
         return False
 
-    # 3. Checksum
+    # 3. Suma kontrolna
     weights = [6, 5, 7, 2, 3, 4, 5, 6, 7]
     check_sum = sum(int(nip[i]) * weights[i] for i in range(9))
     check_digit = check_sum % 11
@@ -158,111 +158,111 @@ def validate_nip(nip):
 
     return check_digit == int(nip[9])
 
-# 4. Check VAT white list
+# 4. Sprawdź w białej liście VAT
 response = requests.get(f"https://wl-api.mf.gov.pl/api/search/nip/{nip}")
 if response.status_code != 200:
-    print("NIP does not exist in MF database")
+    print("NIP nie istnieje w bazie MF")
 ```
 
 ---
 
-### Error 103: Future date
+### Błąd 103: Data w przyszłości
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "exceptionCode": "103",
-  "exceptionDescription": "Future date"
+  "exceptionDescription": "Data w przyszłości"
 }
 ```
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 from datetime import datetime, timedelta
 
-# DataWytworzeniaFa cannot be in future
+# DataWytworzeniaFa nie może być w przyszłości
 now = datetime.now()
 data_wytworzenia = now.strftime('%Y-%m-%dT%H:%M:%S')
 
-# ERROR: Tomorrow's date
+# BŁĄD: Data jutro
 tomorrow = now + timedelta(days=1)
 data_wytworzenia = tomorrow.strftime(...)  # ❌
 
-# Note on time zones
-# KSeF uses Polish time (UTC+1/UTC+2)
+# Uwaga na strefy czasowe
+# KSeF używa czasu polskiego (UTC+1/UTC+2)
 ```
 
 ---
 
-### Error 104: Duplicate invoice number
+### Błąd 104: Duplikat numeru faktury
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "exceptionCode": "104",
-  "exceptionDescription": "Invoice with this number already exists"
+  "exceptionDescription": "Faktura o takim numerze już istnieje"
 }
 ```
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 def generate_unique_invoice_number():
-    # Format: FV/YEAR/MONTH/NUMBER
+    # Format: FV/ROK/MIESIĄC/NUMER
     year = datetime.now().year
     month = datetime.now().month
 
-    # Get last number from database
+    # Pobierz ostatni numer z bazy
     last_number = db.get_last_invoice_number(year, month)
 
     next_number = (last_number or 0) + 1
 
     return f"FV/{year}/{month:02d}/{next_number:04d}"
 
-# Check if number already exists in KSeF
+# Sprawdź czy numer już istnieje w KSeF
 existing = ksef_client.check_invoice_number(invoice_number)
 if existing:
-    print("Number already used - generate new")
+    print("Numer już użyty - wygeneruj nowy")
 ```
 
 ---
 
-## Performance Issues
+## Problemy z Wydajnością
 
-### Timeout API / No Response
+### Timeout API / Brak Odpowiedzi
 
-**Symptoms:**
+**Objawy:**
 - Request timeout (>30s)
 - 503 Service Unavailable
-- No response
+- Brak odpowiedzi
 
-**Diagnosis:**
+**Diagnoza:**
 ```python
 def diagnose_timeout():
-    # 1. Check KSeF status
+    # 1. Sprawdź status KSeF
     try:
         response = requests.get('https://ksef.mf.gov.pl/api/health')
-        print(f"KSeF status: {response.status_code}")
+        print(f"Status KSeF: {response.status_code}")
     except:
-        print("KSeF unavailable")
+        print("KSeF niedostępny")
         return "KSEF_DOWN"
 
-    # 2. Check own network
+    # 2. Sprawdź własną sieć
     try:
         requests.get('https://google.com', timeout=5)
     except:
-        print("Internet problem")
+        print("Problem z internetem")
         return "NETWORK_ISSUE"
 
-    # 3. Check load (peak hours)
+    # 3. Sprawdź obciążenie (godziny szczytu)
     hour = datetime.now().hour
     if hour in [15, 16, 17]:  # 15:00-18:00
-        print("Peak hours - high KSeF load")
+        print("Godziny szczytu - duże obciążenie KSeF")
         return "HIGH_LOAD"
 
     return "UNKNOWN"
 ```
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 import time
 
@@ -275,48 +275,48 @@ def send_with_retry(invoice_xml, max_retries=3):
             if attempt < max_retries - 1:
                 # Exponential backoff
                 wait_time = 2 ** attempt  # 1s, 2s, 4s
-                print(f"Timeout - retry {attempt+1}/{max_retries} in {wait_time}s")
+                print(f"Timeout - retry {attempt+1}/{max_retries} za {wait_time}s")
                 time.sleep(wait_time)
             else:
                 raise
 
 # Best practices:
-# - Send outside peak hours (21:00-6:00)
-# - Use queue + background worker
-# - Implement circuit breaker
+# - Wysyłaj poza godzinami szczytu (21:00-6:00)
+# - Użyj queue + background worker
+# - Implementuj circuit breaker
 ```
 
 ---
 
 ### Rate Limiting (429)
 
-**Symptoms:**
+**Objawy:**
 ```json
 {
   "processingCode": 429,
-  "processingDescription": "Too many requests"
+  "processingDescription": "Zbyt wiele żądań"
 }
 ```
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 import time
 from functools import wraps
 
 def rate_limit(max_per_hour=100):
-    """Decorator limiting number of requests"""
+    """Decorator ograniczający liczbę requestów"""
     calls = []
 
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             now = time.time()
-            # Remove old calls (from hour ago)
+            # Usuń stare calle (sprzed godziny)
             calls[:] = [c for c in calls if c > now - 3600]
 
             if len(calls) >= max_per_hour:
                 wait_time = 3600 - (now - calls[0])
-                print(f"Rate limit - wait {wait_time:.0f}s")
+                print(f"Rate limit - czekaj {wait_time:.0f}s")
                 time.sleep(wait_time)
 
             calls.append(now)
@@ -331,70 +331,70 @@ def send_invoice(invoice):
 
 ---
 
-## Payment Issues
+## Problemy z Płatnościami
 
-### Cannot Match Payment
+### Nie Można Dopasować Płatności
 
-**Causes:**
-- Mismatched amount (error in transfer amount)
-- Missing invoice number in title
-- Split payment (MPP) - partial payment
-- Bulk payment (multiple invoices at once)
+**Przyczyny:**
+- Niezgodna kwota (błąd w kwocie przelewu)
+- Brak numeru faktury w tytule
+- Split payment (MPP) - częściowa płatność
+- Płatność zbiorcza (kilka faktur naraz)
 
-**Solution:**
+**Rozwiązanie:**
 ```python
 def handle_unmatched_payment(payment):
-    # 1. Extended search (tolerance ±2%)
+    # 1. Rozszerzone wyszukiwanie (tolerancja ±2%)
     matches = search_invoices_extended(
         amount_min=payment.amount * 0.98,
         amount_max=payment.amount * 1.02,
-        date_range_days=14  # ±14 days instead of ±7
+        date_range_days=14  # ±14 dni zamiast ±7
     )
 
     if matches:
         return present_to_user_for_confirmation(matches)
 
-    # 2. Check if split payment (VAT portion)
+    # 2. Sprawdź czy to split payment (część VAT)
     if is_likely_vat_payment(payment):
         net_payment = find_net_payment(payment)
         if net_payment:
             return match_mpp(net_payment, payment)
 
-    # 3. Check bulk payment
+    # 3. Sprawdź płatność zbiorczą
     invoice_numbers = extract_invoice_numbers_from_title(payment.title)
     if len(invoice_numbers) > 1:
         return split_payment_to_invoices(payment, invoice_numbers)
 
-    # 4. Flag for manual review
+    # 4. Flaguj do manual review
     flag_for_review(payment)
 ```
 
 ---
 
-## Environment Issues
+## Problemy ze Środowiskiem
 
-### Test Invoices on Production
+### Faktury Testowe na Produkcji
 
-**Problem:** Sent test invoices to production environment
+**Problem:** Wysłano faktury testowe na środowisko produkcyjne
 
-**⚠️ NOTE:** Production invoices are legally binding!
+**⚠️ UWAGA:** Faktury na produkcji są prawnie wiążące!
 
-**What to do:**
-1. DO NOT delete invoices (impossible in KSeF)
-2. Issue corrective invoices to zero
-3. Contact contractor
-4. Report to accounting
+**Co zrobić:**
+1. NIE usuwaj faktur (niemożliwe w KSeF)
+2. Wystaw faktury korygujące do zera
+3. Skontaktuj się z kontrahentem
+4. Zgłoś do księgowości
 
-**Prevention:**
+**Zapobieganie:**
 ```python
-# Always check environment
+# Zawsze sprawdzaj środowisko
 class KSefClient:
     def __init__(self, environment='demo'):
         if environment == 'production':
-            # Require confirmation
-            confirm = input("⚠️  PRODUCTION! Continue? (yes/no): ")
+            # Wymuś potwierdzenie
+            confirm = input("⚠️  PRODUKCJA! Kontynuować? (yes/no): ")
             if confirm != 'yes':
-                raise Exception("Cancelled - use DEMO for testing")
+                raise Exception("Anulowano - używaj DEMO do testów")
 
         self.base_url = {
             'demo': 'https://ksef-demo.mf.gov.pl',
@@ -404,28 +404,28 @@ class KSefClient:
 
 ---
 
-## Monitoring and Alerts
+## Monitoring i Alerty
 
-### Alert Configuration
+### Konfiguracja Alertów
 
 ```python
 def setup_monitoring():
     monitors = [
-        # 1. Alert on high error rate
+        # 1. Alert przy wysokiej liczbie błędów
         {
             'name': 'High rejection rate',
             'condition': lambda: get_rejection_rate_last_hour() > 0.2,
             'action': send_alert_email
         },
 
-        # 2. Alert on KSeF unavailability
+        # 2. Alert przy niedostępności KSeF
         {
             'name': 'KSeF down',
             'condition': lambda: not check_ksef_health(),
             'action': send_sms_alert
         },
 
-        # 3. Alert on payment issues
+        # 3. Alert przy problemach z płatnościami
         {
             'name': 'Too many unmatched payments',
             'condition': lambda: count_unmatched_payments() > 10,
@@ -433,37 +433,37 @@ def setup_monitoring():
         }
     ]
 
-    # Run monitoring every 5 minutes
+    # Uruchom monitoring co 5 minut
     schedule.every(5).minutes.do(run_monitors, monitors)
 ```
 
 ---
 
-## Helpful Tools
+## Pomocne Narzędzia
 
-### KSeF Latarnia (System Status)
+### KSeF Latarnia (Status Systemu)
 
 ```bash
-# Check KSeF status in real-time
+# Sprawdź status KSeF w czasie rzeczywistym
 git clone https://github.com/CIRFMF/ksef-latarnia
 cd ksef-latarnia
 python check_status.py
 ```
 
-### XML Validator
+### Walidator XML
 
 ```python
 from lxml import etree
 
 def validate_fa3_xsd(xml_content):
-    """Validate against XSD schema"""
+    """Walidacja względem schematu XSD"""
     xsd_url = "https://ksef.podatki.gov.pl/xsd/FA3_1-0E.xsd"
 
-    # Download schema
+    # Pobierz schemat
     xsd_doc = etree.parse(xsd_url)
     schema = etree.XMLSchema(xsd_doc)
 
-    # Validate XML
+    # Waliduj XML
     xml_doc = etree.fromstring(xml_content.encode('utf-8'))
 
     try:
@@ -475,9 +475,7 @@ def validate_fa3_xsd(xml_content):
 
 ---
 
-**Need help?**
-- KSeF Documentation: https://ksef.podatki.gov.pl
+**Potrzebujesz pomocy?**
+- Dokumentacja KSeF: https://ksef.podatki.gov.pl
 - Forum: https://github.com/CIRFMF/ksef-discussions
-- MF Helpdesk: (check KSeF portal)
-
-[← Back to main SKILL](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-en/SKILL.md)
+- Helpdesk MF: (sprawdź portal KSeF)

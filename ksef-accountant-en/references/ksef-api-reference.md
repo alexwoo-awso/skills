@@ -1,12 +1,12 @@
 # KSeF API 2.0 - Reference
 
-**UWAGA:** Rzeczywiste punkty końcowe i formaty mogą ulec zmianie. Należy zawsze odwoływać się do oficjalnej dokumentacji API KSeF.
+**NOTE:** Actual endpoints and formats may change. Always refer to the official KSeF API documentation.
 
 ---
 
-## Autentykacja
+## Authentication
 
-### 1. Inicjalizacja Sesji (Token)
+### 1. Session Initialization (Token)
 
 **Endpoint:**
 ```http
@@ -35,11 +35,11 @@ Content-Type: application/json
 }
 ```
 
-**Ważność tokena:** Typowo 30 minut
+**Token validity:** Typically 30 minutes
 
 ---
 
-### 2. Inicjalizacja Sesji (Certyfikat)
+### 2. Session Initialization (Certificate)
 
 **Endpoint:**
 ```http
@@ -51,7 +51,7 @@ Content-Type: application/octet-stream
 
 ---
 
-### 3. Status Sesji
+### 3. Session Status
 
 **Endpoint:**
 ```http
@@ -65,13 +65,13 @@ Authorization: SessionToken {token}
   "referenceNumber": "20260208-SE-1234567890AB-CD",
   "timestamp": "2026-02-08T23:45:00.000Z",
   "processingCode": 200,
-  "processingDescription": "Sesja aktywna"
+  "processingDescription": "Active session"
 }
 ```
 
 ---
 
-### 4. Zamknięcie Sesji
+### 4. Session Termination
 
 **Endpoint:**
 ```http
@@ -85,15 +85,15 @@ Authorization: SessionToken {token}
   "referenceNumber": "20260208-ST-1234567890AB-CD",
   "timestamp": "2026-02-08T23:50:00.000Z",
   "processingCode": 200,
-  "processingDescription": "Sesja zakończona"
+  "processingDescription": "Session terminated"
 }
 ```
 
 ---
 
-## Wysyłanie Faktur
+## Sending Invoices
 
-### 5. Wysłanie Faktury
+### 5. Send Invoice
 
 **Endpoint:**
 ```http
@@ -104,19 +104,19 @@ Content-Type: application/octet-stream
 
 **Request Body:** FA(3) XML Content (raw bytes)
 
-**Response (200 OK - Przyjęto do przetworzenia):**
+**Response (200 OK - Accepted for processing):**
 ```json
 {
   "referenceNumber": "20260208-IV-1234567890AB-CD",
   "timestamp": "2026-02-08T23:41:00.000Z",
   "processingCode": 200,
-  "processingDescription": "Faktura została przyjęta do przetworzenia"
+  "processingDescription": "Invoice accepted for processing"
 }
 ```
 
 ---
 
-### 6. Status Faktury
+### 6. Invoice Status
 
 **Endpoint:**
 ```http
@@ -124,12 +124,12 @@ GET /api/online/Invoice/Status/{InvoiceElementReferenceNumber}
 Authorization: SessionToken {token}
 ```
 
-**Możliwe statusy:**
-- `200` - Przetwarzanie w toku
-- `202` - Faktura zaakceptowana
-- `400` - Faktura odrzucona (błędy walidacji)
+**Possible statuses:**
+- `200` - Processing in progress
+- `202` - Invoice accepted
+- `400` - Invoice rejected (validation errors)
 
-**Response (202 - Zaakceptowana):**
+**Response (202 - Accepted):**
 ```json
 {
   "referenceNumber": "20260208-IV-1234567890AB-CD",
@@ -141,7 +141,7 @@ Authorization: SessionToken {token}
 }
 ```
 
-**Response (400 - Odrzucona):**
+**Response (400 - Rejected):**
 ```json
 {
   "referenceNumber": "20260208-IV-1234567890AB-CD",
@@ -151,7 +151,7 @@ Authorization: SessionToken {token}
     "exceptionDetailList": [
       {
         "exceptionCode": "101",
-        "exceptionDescription": "Błąd walidacji schematu XSD"
+        "exceptionDescription": "XSD schema validation error"
       }
     ]
   }
@@ -160,7 +160,7 @@ Authorization: SessionToken {token}
 
 ---
 
-### 7. Pobieranie UPO
+### 7. Retrieving UPO
 
 **Endpoint:**
 ```http
@@ -169,13 +169,13 @@ Authorization: SessionToken {token}
 Accept: application/xml
 ```
 
-**Response (200 OK):** XML z urzędowym poświadczeniem odbioru
+**Response (200 OK):** XML with official confirmation of receipt
 
 ---
 
-## Pobieranie Faktur
+## Retrieving Invoices
 
-### 8. Wyszukiwanie Faktur (Synchroniczne)
+### 8. Invoice Search (Synchronous)
 
 **Endpoint:**
 ```http
@@ -184,7 +184,7 @@ Authorization: SessionToken {token}
 Content-Type: application/json
 ```
 
-**Request (faktury zakupowe, zakres dat):**
+**Request (purchase invoices, date range):**
 ```json
 {
   "queryCriteria": {
@@ -198,9 +198,9 @@ Content-Type: application/json
 }
 ```
 
-**QueryCriteria - typy:**
-- `subjectType: "subject1"` - faktury sprzedażowe (jako sprzedawca)
-- `subjectType: "subject2"` - faktury zakupowe (jako nabywca)
+**QueryCriteria - types:**
+- `subjectType: "subject1"` - sales invoices (as seller)
+- `subjectType: "subject2"` - purchase invoices (as buyer)
 
 **Response (200 OK):**
 ```json
@@ -228,7 +228,7 @@ Content-Type: application/json
 
 ---
 
-### 9. Wyszukiwanie Faktur (Asynchroniczne)
+### 9. Invoice Search (Asynchronous)
 
 **Endpoint:**
 ```http
@@ -237,16 +237,16 @@ Authorization: SessionToken {token}
 Content-Type: application/json
 ```
 
-**Użycie:** Dla dużych zbiorów danych (>100 faktur)
+**Use:** For large datasets (>100 invoices)
 
 **Workflow:**
-1. `POST /api/online/Query/Invoice/Async/Init` - inicjalizacja
-2. `GET /api/online/Query/Invoice/Async/Status/{QueryElementReferenceNumber}` - sprawdzenie statusu
-3. `GET /api/online/Query/Invoice/Async/Fetch/{QueryElementReferenceNumber}` - pobranie wyników
+1. `POST /api/online/Query/Invoice/Async/Init` - initialization
+2. `GET /api/online/Query/Invoice/Async/Status/{QueryElementReferenceNumber}` - check status
+3. `GET /api/online/Query/Invoice/Async/Fetch/{QueryElementReferenceNumber}` - fetch results
 
 ---
 
-### 10. Pobieranie Pełnej Faktury
+### 10. Retrieving Full Invoice
 
 **Endpoint:**
 ```http
@@ -255,13 +255,13 @@ Authorization: SessionToken {token}
 Accept: application/xml
 ```
 
-**Response (200 OK):** Pełny XML FA(3)
+**Response (200 OK):** Full FA(3) XML
 
 ---
 
-## Tryb Offline
+## Offline Mode
 
-### 11. Wysłanie Faktury Offline
+### 11. Send Offline Invoice
 
 **Endpoint:**
 ```http
@@ -270,7 +270,7 @@ Authorization: SessionToken {token}
 Content-Type: application/octet-stream
 ```
 
-**FA(3) XML z oznaczeniem Offline24:**
+**FA(3) XML with Offline24 marking:**
 ```xml
 <Faktura>
   <Naglowek>
@@ -280,75 +280,75 @@ Content-Type: application/octet-stream
 </Faktura>
 ```
 
-**Termin wysyłki:** 24h od odzyskania łączności
+**Submission deadline:** 24h from regaining connectivity
 
 ---
 
-## Kody Błędów
+## Error Codes
 
-### Najczęstsze
+### Most Common
 
-| Kod | Opis | Rozwiązanie |
-|-----|------|-------------|
-| 100 | Nieprawidłowy format XML | Sprawdź encoding UTF-8 |
-| 101 | Błąd walidacji schematu | Upewnij się że używasz FA(3) |
-| 102 | Nieprawidłowy NIP | Sprawdź w białej liście VAT |
-| 103 | Data w przyszłości | Skoryguj DataWytworzeniaFa |
-| 104 | Duplikat numeru faktury | Sprawdź unikalność |
-| 401 | Brak autoryzacji | Sesja wygasła, odśwież token |
-| 403 | Brak uprawnień | Sprawdź uprawnienia tokena |
-| 500 | Błąd serwera | Retry z exponential backoff |
-| 503 | Serwis niedostępny | Sprawdź status KSeF (Latarnia) |
+| Code | Description | Solution |
+|------|-------------|----------|
+| 100 | Invalid XML format | Check UTF-8 encoding |
+| 101 | Schema validation error | Ensure FA(3) is used |
+| 102 | Invalid NIP | Check VAT white list |
+| 103 | Future date | Correct DataWytworzeniaFa |
+| 104 | Duplicate invoice number | Check uniqueness |
+| 401 | No authorization | Session expired, refresh token |
+| 403 | No permissions | Check token permissions |
+| 500 | Server error | Retry with exponential backoff |
+| 503 | Service unavailable | Check KSeF status (Latarnia) |
 
 ---
 
 ## Rate Limiting
 
-**UWAGA:** Szczegóły mogą się różnić. Sprawdź aktualną dokumentację.
+**NOTE:** Details may vary. Check current documentation.
 
-**Typowe limity (szacunkowe):**
-- Sesje: ~100 sesji/godzinę na token
-- Faktury: ~1000 faktur/godzinę na sesję
-- Queries: ~100 zapytań/godzinę na sesję
+**Typical limits (estimated):**
+- Sessions: ~100 sessions/hour per token
+- Invoices: ~1000 invoices/hour per session
+- Queries: ~100 queries/hour per session
 
 **Best practices:**
-- Używaj pojedynczej sesji dla wielu faktur
-- Implementuj exponential backoff przy 429/503
-- Cachuj wyniki queries (nie odpytuj co sekundę)
+- Use single session for multiple invoices
+- Implement exponential backoff at 429/503
+- Cache query results (don't query every second)
 
 ---
 
-## Środowiska
+## Environments
 
-### DEMO (testowe)
+### DEMO (testing)
 ```
 Base URL: https://ksef-demo.mf.gov.pl
-Przeznaczenie: Testy integracji, development
-Dane: Testowe (nie produkcyjne)
+Purpose: Integration testing, development
+Data: Test (not production)
 ```
 
-### PRODUKCJA
+### PRODUCTION
 ```
 Base URL: https://ksef.mf.gov.pl
-Przeznaczenie: Faktury produkcyjne
-Dane: Prawne wiążące
+Purpose: Production invoices
+Data: Legally binding
 ```
 
-**UWAGA:** NIE testuj na produkcji! Zawsze używaj DEMO do developmentu.
+**NOTE:** DO NOT test on production! Always use DEMO for development.
 
 ---
 
-## Przykładowy Workflow
+## Example Workflow
 
 ```python
-# 1. Inicjalizacja sesji
+# 1. Initialize session
 session = ksef_client.init_session(token="YOUR_TOKEN")
 
-# 2. Wysłanie faktury
+# 2. Send invoice
 invoice_xml = generate_fa3_xml(invoice_data)
 ref = ksef_client.send_invoice(session, invoice_xml)
 
-# 3. Sprawdzenie statusu (z retry)
+# 3. Check status (with retry)
 for i in range(10):
     status = ksef_client.get_invoice_status(session, ref)
     if status.code == 202:
@@ -357,17 +357,15 @@ for i in range(10):
     elif status.code == 400:
         handle_rejection(status.exception)
         break
-    time.sleep(2)  # Czekaj 2s przed następnym sprawdzeniem
+    time.sleep(2)  # Wait 2s before next check
 
-# 4. Pobranie UPO
+# 4. Retrieve UPO
 upo_xml = ksef_client.get_upo(session, ksef_number)
 
-# 5. Zamknięcie sesji
+# 5. Terminate session
 ksef_client.terminate_session(session)
 ```
 
 ---
 
-**Oficjalna dokumentacja:** https://ksef.mf.gov.pl/api/docs
-
-[← Powrót do głównego SKILL](https://github.com/alexwoo-awso/skill/blob/main/ksef-accountant-pl/SKILL.md)
+**Official documentation:** https://ksef.mf.gov.pl/api/docs

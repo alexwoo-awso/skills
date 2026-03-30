@@ -1,16 +1,9 @@
 ---
 name: test-runner
-description: Run, debug, and improve automated tests across TypeScript or JavaScript, Python, and Swift projects. Use when Codex needs to choose or work within an existing test stack, write or fix unit, integration, or end-to-end tests, run targeted test commands, interpret failures, improve coverage, or follow a red-green-refactor workflow.
+description: Write and run tests across languages and frameworks.
 ---
 
-# Test Runner v1.0.1
-
-Adapted from the original skill by `@cmanfre7`.
-
-- Original creator: `@cmanfre7`
-- Original skill: <https://clawhub.ai/cmanfre7/test-runner>
-- This edition: `v1.0.1`
-- Intended publish target: <https://clawhub.ai/alexwoo-awso/test-runner>
+# Test Runner
 
 ## Core workflow
 
